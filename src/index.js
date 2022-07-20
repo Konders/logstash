@@ -38,7 +38,7 @@ Logstash.prototype._sendEvent = function _sendEvent(event) {
   return fetch(this.url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(event),
+    body: JSON.stringify(event) + "\n",// without \n server would wait for end of stream and data would be added after client termination
   });
 };
 
