@@ -3,6 +3,13 @@ require("isomorphic-fetch");
 const { default: pQueue } = require("p-queue");
 const pRetry = require("p-retry");
 
+const defaultOptions = {
+  maxRetries: 5,
+  concurrency: 25,
+  maxMessagesPerSecond: 10,
+  muteConsole: false
+}
+
 function create(url, tags, level, options) {
   return new Logstash(url, tags, level, options);
 }
@@ -15,10 +22,10 @@ function Logstash(url, tags = [], level = "info", options = {}) {
   this.url = url;
   this.tags = tags;
   this.level = level;
-  this.maxRetries = options.maxRetries || 5;
-  this.concurrency = options.concurrency || 25;
-  this.maxMessagesPerSecond = options.maxMessagesPerSecond || 10;
-  this.muteConsole = options.muteConsole === true || false;
+  this.maxRetries = options.maxRetries || defaultOptions.maxRetries;
+  this.concurrency = options.concurrency || defaultOptions.concurrency;
+  this.maxMessagesPerSecond = options.maxMessagesPerSecond || defaultOptions.maxMessagesPerSecond;
+  this.muteConsole = options.muteConsole === true || defaultOptions.muteConsole;
 
   this.queue = new pQueue({
     concurrency: this.concurrency,
@@ -72,7 +79,7 @@ Logstash.prototype.log = function log(level, message, fields) {
   this.queue.add(() =>
     pRetry(() => this._sendEvent(event), { retries: this.maxRetries }).catch(
       (err) => {
-        console.warn(`Could not send message to Logstash - [${err.message}]`);
+        console.warn(`[Logstash:send] Could not send message to Logstash - [${err.message}]`);
       }
     )
   );
@@ -85,16 +92,16 @@ Logstash.prototype.log = function log(level, message, fields) {
 
   switch (level) {
     case "fatal":
-      console.error(`${message}${fieldsStr}`);
+      console.error(`[Logstash:send] ${message}${fieldsStr}`);
       break;
     case "error":
-      console.error(`${message}${fieldsStr}`);
+      console.error(`[Logstash:send] ${message}${fieldsStr}`);
       break;
     case "warn":
-      console.warn(`${message}${fieldsStr}`);
+      console.warn(`[Logstash:send] ${message}${fieldsStr}`);
       break;
     default:
-      console.info(`${message}${fieldsStr}`);
+      console.info(`[Logstash:send] ${message}${fieldsStr}`);
   }
 };
 
