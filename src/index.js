@@ -1,8 +1,7 @@
-require("isomorphic-fetch");
-
 const { default: pQueue } = require("p-queue");
 const pRetry = require("p-retry");
-
+const net = require('net'),
+  JsonSocket = require('json-socket');
 const defaultOptions = {
   maxRetries: 5,
   concurrency: 25,
@@ -10,16 +9,16 @@ const defaultOptions = {
   muteConsole: false
 }
 
-function create(url, tags, level, options) {
-  return new Logstash(url, tags, level, options);
+function create(host, port, tags, level, options) {
+  return new Logstash(host, port, tags, level, options);
 }
 
-function Logstash(url, tags = [], level = "info", options = {}) {
-  if (!url) {
-    throw new TypeError("Invalid URL");
-  }
+function Logstash(host, port, tags = [], level = "info", options = {}) {
+  if (!host)
+    throw new TypeError("Invalid HOST");
 
-  this.url = url;
+  this.host = host;
+  this.port = port;
   this.tags = tags;
   this.level = level;
   this.maxRetries = options.maxRetries || defaultOptions.maxRetries;
@@ -35,10 +34,10 @@ function Logstash(url, tags = [], level = "info", options = {}) {
 }
 
 Logstash.prototype._sendEvent = function _sendEvent(event) {
-  return fetch(this.url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(event) + "\n",// without \n server would wait for end of stream and data would be added after client termination
+  JsonSocket.sendSingleMessage(this.port, this.host, event, function (err) {
+    if (err) {
+      throw err;
+    }
   });
 };
 

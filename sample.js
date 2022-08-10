@@ -1,15 +1,14 @@
 const createLogstash = require('./src')
 
 // required
-const url = process.env.LOGSTASH_URL
+const host = process.env.LOGSTASH_HOST
+const port = process.env.LOGSTASH_PORT
 
 // optional
 const tags = ['production', 'api']
 const level = 'info'
 
 // Create logger instance
-const logger = createLogstash(url, tags, level)
+const logger = createLogstash(host, port, tags, level)
 
-for (let i = 0; i < 2; i++) {
-  logger.fatal(new Error("Test!"), { data: 123 })
-}
+logger.info("testMessage",{test:"test"})
