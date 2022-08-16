@@ -36,7 +36,7 @@ function Logstash(host, port, tags = [], level = "info", options = {}) {
 Logstash.prototype._sendEvent = function _sendEvent(event) {
   JsonSocket.sendSingleMessage(this.port, this.host, event, function (err) {
     if (err) {
-      throw err;
+       console.error("[Logstash:send] Could not send message to Logstash - [%s]", err.message);
     }
   });
 };
